@@ -1,35 +1,59 @@
 {{ define "head" }}
 	{{ if .Params.featuredImg -}}
-	<style>.bg-img {background-image: url('{{.Params.featuredImg}}');}</style>
+		<style>.bg-img {background-image: url('{{.Params.featuredImg}}');}</style>
 	{{- else if .Params.images -}}
 		{{- range first 1 .Params.images -}}
-		<style>.bg-img {background-image: url('{{. | absURL}}');}</style>
+			<style>.bg-img {background-image: url('{{. | absURL}}');}</style>
 		{{- end -}}
 	{{- end -}}
 {{ end }}
 
 {{ define "header" }}
-{{ partial "header.html" . }}
+	{{ partial "header.html" . }}
 {{ end }}
 
 {{ define "main" }}
-	{{- if (or .Params.images .Params.featuredImg) }}
-	<div class="bg-img"></div>
+	{{- if .Params.image }}
+	{{ $lang := .Site.Params.defaultContentLanguage | default "en" }}
+	{{ $path := .Params.image | split "/" }}
+	{{ $contentDir := .Page.Section }}
+	{{ $imagePath := printf "%s/%s/%s" $lang $contentDir (index $path 0) }}
+	<div class="post-image" style="text-align: center; margin-bottom: 20px;">
+	<img src="{{ .Site.BaseURL }}{{ $imagePath }}/{{ .Params.image }}" alt="{{ .Title }}" style="max-width: 100%; height: auto;">
+	</div>
 	{{- end }}
 	<main class="site-main section-inner thin {{- if ne false .Site.Params.usesAnimation }} animated fadeIn faster {{- end -}}">
 		<h1>{{ .Title }}</h1>
 		<div class="content">
-			{{ .Content | replaceRE "(<h[1-6] id=\"([^\"]+)\".+)(</h[1-6]+>)" `${1}<a href="#${2}" class="anchor" aria-hidden="true"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 7h3a5 5 0 0 1 5 5 5 5 0 0 1-5 5h-3m-6 0H6a5 5 0 0 1-5-5 5 5 0 0 1 5-5h3"></path><line x1="8" y1="12" x2="16" y2="12"></line></svg></a>${3}` | safeHTML }}
+			{{ .Content | safeHTML }}
 		</div>
+
+		{{- if .Params.website }}
+			<div class="post-website">
+				<a href="{{ .Params.website }}" target="_blank" rel="noopener" class="address-link">
+					Visit Website
+				</a>
+			</div>
+		{{- end }}
+
+		{{- if and .Params.address .Params.addressLink }}
+			<div class="post-address">
+				<a href="{{ .Params.addressLink }}" target="_blank" rel="noopener" class="address-link">
+					{{ .Params.address }}, {{ .Params.postcode }} {{ .Params.city }}
+				</a>
+			</div>
+		{{- end }}
+
 		{{ partial "brainMade.html" . }}
+
 		{{- if .Params.comments }}
-		<div id="comments" class="thin">
-			{{ partial "comments.html" . }}
-		</div>
+			<div id="comments" class="thin">
+				{{ partial "comments.html" . }}
+			</div>
 		{{- end }}
 	</main>
 {{ end }}
 
 {{ define "footer" }}
-{{ partialCached "footer.html" . }}
+	{{ partialCached "footer.html" . }}
 {{ end }}
